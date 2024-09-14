@@ -29,14 +29,14 @@ CLASS lcl_crick_play IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD fill_catalog.
-    g_it_catalog = VALUE #( ( fieldname = 'UNAME'  scrtext_m = 'User' )
+    g_it_catalog = VALUE #( ( fieldname = 'UNAME'  scrtext_m = 'User'  emphasize = 'C1')
                             ( fieldname = 'INPUT'  scrtext_m = 'Your Turn' edit = 'X' )
-                            ( fieldname = 'ACTION'  scrtext_m = 'Action' )
-                            ( fieldname = 'INNING'  scrtext_m = 'Innings' )
-                            ( fieldname = 'INDIVIDUAL_SCORE'  scrtext_m = 'Ind. score' )
-                            ( fieldname = 'RUNNING_TOTAL'  scrtext_m = 'Running Total' )
-                            ( fieldname = 'WICKETS_LEFT'  scrtext_m = 'Wickets Left' )
-                            ( fieldname = 'TARGET'  scrtext_m = 'Target' ) ).
+                            ( fieldname = 'ACTION'  scrtext_m = 'Action' emphasize = 'C3' )
+                            ( fieldname = 'INNING'  scrtext_m = 'Innings' emphasize = 'C3'  )
+                            ( fieldname = 'INDIVIDUAL_SCORE'  scrtext_m = 'Ind. score' emphasize = 'C3' )
+                            ( fieldname = 'RUNNING_TOTAL'  scrtext_m = 'Running Total' emphasize = 'C3' )
+                            ( fieldname = 'WICKETS_LEFT'  scrtext_m = 'Wickets Left' emphasize = 'C3'  )
+                            ( fieldname = 'TARGET'  scrtext_m = 'Target' emphasize = 'C3' ) ).
   ENDMETHOD.
 
   METHOD call_alv_grid.
