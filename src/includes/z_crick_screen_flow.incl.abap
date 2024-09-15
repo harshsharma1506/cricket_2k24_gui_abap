@@ -108,11 +108,26 @@ CLASS lcl_crick_play IMPLEMENTATION.
       DATA(lv_lines_bowl) = lines( g_it_final ).
       DATA(ls_final_bowl) = g_it_final[ lv_lines_bowl ].
       IF ls_final_bowl-input <> lv_bat_bot.                     " wicket / out scenario
-        ls_final_bowl-individual_score = ls_final_bowl-individual_score + lv_bat_bot.
-        MODIFY g_it_final FROM ls_final_bowl INDEX lv_lines_bowl.
-        IF sy-subrc <> 0.
-          MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
-                     WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+        IF ls_final_bowl-inning  = 1.
+          ls_final_bowl-individual_score = ls_final_bowl-individual_score + lv_bat_bot.
+          MODIFY g_it_final FROM ls_final_bowl INDEX lv_lines_bowl.
+          IF sy-subrc <> 0.
+            MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+                       WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+          ENDIF.
+        ELSE.
+          ls_final_bowl-individual_score = ls_final_bowl-individual_score + lv_bat_bot.
+          MODIFY g_it_final FROM ls_final_bowl INDEX lv_lines_bowl.
+          TRY.
+              DATA(ls_final_bo_pre) = g_it_final[ lv_lines_bowl - 1 ].
+            CATCH cx_sy_itab_line_not_found.
+          ENDTRY.
+          IF ls_final_bo_pre-input <> 'Batting'.
+            IF ( ls_final_bo_pre-individual_score + ls_final_bowl-individual_score ) > ls_final_bowl-target.
+              MESSAGE | { ls_final_bowl-uname } has won | TYPE 'I'.
+              LEAVE TO SCREEN 0.
+            ENDIF.
+          ENDIF.
         ENDIF.
       ELSE.
         DATA(lv_lines_bo_wicket) = lines( g_it_final ).
