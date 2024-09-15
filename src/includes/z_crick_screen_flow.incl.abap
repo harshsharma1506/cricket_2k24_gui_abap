@@ -13,10 +13,15 @@ CLASS lcl_crick_play DEFINITION.
                        i_parent_ob   TYPE REF TO cl_gui_custom_container
                      CHANGING
                        c_fieldcat    TYPE lvc_t_fcat
-                       ct_tab        TYPE STANDARD TABLE.
+                       ct_tab        TYPE STANDARD TABLE,
+      bot_bowls_user_bats,
+      user_bowls_bot_bats.
   PROTECTED SECTION.
 
   PRIVATE SECTION.
+    DATA: lv_refresh TYPE xfeld,
+          lv_valid   TYPE xfeld,
+          lo_grid    TYPE REF TO cl_gui_alv_grid.
 
 ENDCLASS.
 
@@ -44,7 +49,7 @@ CLASS lcl_crick_play IMPLEMENTATION.
     i_grid = NEW cl_gui_alv_grid(
         i_parent          = i_parent_ob
       ).
-
+    lo_grid = i_grid.
     i_grid->set_table_for_first_display(
       EXPORTING
         i_save                        = 'X'    " Save Layout
@@ -62,6 +67,31 @@ CLASS lcl_crick_play IMPLEMENTATION.
       MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
                  WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
     ENDIF.
+  ENDMETHOD.
+
+  METHOD user_bowls_bot_bats.
+    IF lo_grid IS BOUND.
+      lo_grid->check_changed_data(
+        IMPORTING
+          e_valid   = lv_valid    " Entries are Consistent
+        CHANGING
+          c_refresh = lv_refresh    " Character Field of Length 1
+      ).
+      IF lv_valid IS NOT INITIAL.
+        lo_grid->refresh_table_display(
+          EXCEPTIONS
+            finished       = 1
+            OTHERS         = 2
+        ).
+        IF sy-subrc <> 0.
+          MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+                     WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+  ENDMETHOD.
+  METHOD bot_bowls_user_bats.
+
   ENDMETHOD.
 ENDCLASS.
 
@@ -98,5 +128,13 @@ MODULE user_command_0500 INPUT.
       LEAVE TO SCREEN 0.
     WHEN '&CANCEL'.
       LEAVE TO SCREEN 0.
+    WHEN '&SAVE'.
+      IF ( g_user_ch IS NOT INITIAL AND g_act = 'Batting' ) OR
+         ( g_bot_ch IS NOT INITIAL AND g_act = 'Bowling' ).
+        lo_stat->bot_bowls_user_bats( ).
+      ELSEIF ( g_user_ch IS NOT INITIAL AND g_act = 'Bowling' ) OR
+        ( g_bot_ch IS NOT INITIAL AND g_act = 'Batting' ).
+        lo_stat->user_bowls_bot_bats( ).
+      ENDIF.
   ENDCASE.
 ENDMODULE.
