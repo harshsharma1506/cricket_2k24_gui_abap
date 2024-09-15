@@ -1,136 +1,218 @@
-*&---------------------------------------------------------------------*
-*&  Include           Z_CRICK_CLS
-*&---------------------------------------------------------------------*
-CLASS lcl_ui DEFINITION.
+*----------------------------------------------------------------------*
+***INCLUDE Z_CRICK_SCREEN_FLOW.
+*----------------------------------------------------------------------*
+
+CLASS lcl_crick_play DEFINITION.
+
   PUBLIC SECTION.
-    METHODS:
-      val_range    IMPORTING
-                     i_range TYPE i,
-      val_wicket    IMPORTING
-                      i_wck TYPE i,
-      random_generator IMPORTING
-                         i_high TYPE i
-                       EXPORTING
-                         e_ret  TYPE i,
-      do_toss        IMPORTING
-                       i_rge    TYPE i
-                     EXPORTING
-                       e_val    TYPE i
-                       e_result TYPE boole_d,
-      toss_finalizer IMPORTING
-                       i_result      TYPE boole_d
-                     EXPORTING
-                       e_user_choice TYPE char1
-                       e_bot_choice  TYPE char1
-                       e_text_action TYPE string.
+    DATA: lo_ui_stat TYPE REF TO lcl_ui.
+    METHODS: call_container CHANGING
+                              VALUE(c_val) TYPE REF TO cl_gui_custom_container,
+      fill_catalog  ,
+      call_alv_grid  IMPORTING
+                       VALUE(i_grid) TYPE REF TO  cl_gui_alv_grid
+                       i_parent_ob   TYPE REF TO cl_gui_custom_container
+                     CHANGING
+                       c_fieldcat    TYPE lvc_t_fcat
+                       ct_tab        TYPE STANDARD TABLE,
+      bot_bowls_user_bats,
+      user_bowls_bot_bats.
   PROTECTED SECTION.
+
   PRIVATE SECTION.
-    DATA dec_make TYPE char2.
-    METHODS: get_placeholder IMPORTING
-                               i_choice      TYPE char1
-                             EXPORTING
-                               e_text_choice TYPE string.
+    DATA: lv_refresh TYPE xfeld,
+          lv_valid   TYPE xfeld,
+          lo_grid    TYPE REF TO cl_gui_alv_grid,
+          lv_inning  TYPE i.
+
 ENDCLASS.
 
-CLASS lcl_ui IMPLEMENTATION.
+CLASS lcl_crick_play IMPLEMENTATION.
 
-  METHOD val_range.
-    IF i_range = 6 OR i_range = 10.
-      "do nothing
-    ELSE.
-      MESSAGE 'enter either 6 or 10' TYPE 'E'.
-    ENDIF.
-  ENDMETHOD.
-
-  METHOD val_wicket.
-    IF i_wck > 10.
-      MESSAGE 'there are only 10 wickets max in cricket !' TYPE 'E'.
-    ENDIF.
-  ENDMETHOD.
-
-  METHOD random_generator.
-    cl_abap_random=>create(
-        seed = CONV i( sy-uzeit )
-    )->intinrange(
-      EXPORTING
-        low            = 1    " lower bound of interval
-        high           = i_high    " upper bound of interval
-      RECEIVING
-        value          = e_ret    " random number's value
+  METHOD call_container.
+    c_val = NEW cl_gui_custom_container(
+        container_name              = 'LV_CONT'
     ).
   ENDMETHOD.
 
-  METHOD do_toss.               "e_result = abap_true means user has won , bot has lost.
-    me->random_generator(
-      EXPORTING
-        i_high = i_rge
-      IMPORTING
-        e_ret  = e_val
-    ).
-    IF ( e_val + p_tinp ) MOD 2 = 0 AND
-       p_rad1 = abap_true.
-      e_result = abap_true.
-    ELSEIF ( e_val + p_tinp ) MOD 2 <> 0 AND
-      p_rad2 = abap_true.
-      e_result = abap_true.
-    ELSE.
-      CLEAR e_result.
-    ENDIF.
+  METHOD fill_catalog.
+    g_it_catalog = VALUE #( ( fieldname = 'UNAME'  scrtext_m = 'User'  emphasize = 'C1')
+                            ( fieldname = 'INPUT'  scrtext_m = 'Your Turn' edit = 'X' )
+                            ( fieldname = 'ACTION'  scrtext_m = 'Action' emphasize = 'C3' )
+                            ( fieldname = 'INNING'  scrtext_m = 'Innings' emphasize = 'C3'  )
+                            ( fieldname = 'INDIVIDUAL_SCORE'  scrtext_m = 'Ind. score' emphasize = 'C3' )
+*                            ( fieldname = 'RUNNING_TOTAL'  scrtext_m = 'Running Total' emphasize = 'C3' )
+                            ( fieldname = 'WICKETS_LEFT'  scrtext_m = 'Wickets Left' emphasize = 'C3'  )
+                            ( fieldname = 'TARGET'  scrtext_m = 'Target' emphasize = 'C3' ) ).
   ENDMETHOD.
 
-  METHOD toss_finalizer.
-    IF i_result <> abap_true.     " 1 is batting , 2 is bowling
-      me->random_generator(
-        EXPORTING
-          i_high = 2
-        IMPORTING
-          e_ret  = DATA(lv_return)
+  METHOD call_alv_grid.
+
+    i_grid = NEW cl_gui_alv_grid(
+        i_parent          = i_parent_ob
       ).
-      DATA(lv_str) = | You have lost, bot chose to { lv_return } |.
-      REPLACE FIRST OCCURRENCE OF '1' IN lv_str WITH 'bat'.
-      REPLACE FIRST OCCURRENCE OF '2' IN lv_str WITH 'bowl'.
-      MESSAGE lv_str TYPE 'I'.
-      e_bot_choice = CONV #( lv_return ).
-    ELSE.
-      CALL FUNCTION 'POPUP_TO_CONFIRM'
-        EXPORTING
-          titlebar       = text-005
-          text_question  = text-004
-          text_button_1  = text-006
-          text_button_2  = text-007
-        IMPORTING
-          answer         = e_user_choice
-        EXCEPTIONS
-          text_not_found = 1
-          OTHERS         = 2.
-      IF sy-subrc <> 0.
+    lo_grid = i_grid.
+    IF sy-subrc <> 0.
+      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+                 WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+    ENDIF.
+    i_grid->set_table_for_first_display(
+      EXPORTING
+        i_save                        = 'X'    " Save Layout
+        i_default                     = 'X'    " Default Display Variant
+      CHANGING
+        it_outtab                     = ct_tab   " Output Table
+        it_fieldcatalog               = c_fieldcat    " Field Catalog
+      EXCEPTIONS
+        invalid_parameter_combination = 1
+        program_error                 = 2
+        too_many_lines                = 3
+        OTHERS                        = 4
+    ).
+    IF sy-subrc <> 0.
+      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+                 WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+    ENDIF.
+  ENDMETHOD.
 
+  METHOD user_bowls_bot_bats.
+    IF lo_grid IS BOUND.
+      lo_ui_stat = NEW lcl_ui( ).
+      lo_ui_stat->random_generator(
+        EXPORTING
+          i_high = p_range
+        IMPORTING
+          e_ret  = DATA(lv_bat_bot) ).
+      IF sy-subrc <> 0.
+        MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+                   WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+      ENDIF.
+      lo_grid->check_changed_data(
+        IMPORTING
+          e_valid   = lv_valid    " Entries are Consistent
+        CHANGING
+          c_refresh = lv_refresh    " Character Field of Length 1
+      ).
+      IF lv_valid IS NOT INITIAL.
+        lo_grid->refresh_table_display(
+          EXCEPTIONS
+            finished       = 1
+            OTHERS         = 2
+        ).
+        IF sy-subrc <> 0.
+          MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+                     WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+        ENDIF.
+      ENDIF.
+      SORT g_it_final BY wickets_left DESCENDING.
+      DATA(lv_lines_bowl) = lines( g_it_final ).
+      DATA(ls_final_bowl) = g_it_final[ lv_lines_bowl ].
+      IF ls_final_bowl-input <> lv_bat_bot.                     " wicket / out scenario
+        IF ls_final_bowl-inning  = 1.
+          ls_final_bowl-individual_score = ls_final_bowl-individual_score + lv_bat_bot.
+          MODIFY g_it_final FROM ls_final_bowl INDEX lv_lines_bowl.
+          IF sy-subrc <> 0.
+            MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+                       WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+          ENDIF.
+        ELSE.
+          ls_final_bowl-individual_score = ls_final_bowl-individual_score + lv_bat_bot.
+          MODIFY g_it_final FROM ls_final_bowl INDEX lv_lines_bowl.
+          TRY.
+              DATA(ls_final_bo_pre) = g_it_final[ lv_lines_bowl - 1 ].
+            CATCH cx_sy_itab_line_not_found.
+          ENDTRY.
+          IF ls_final_bo_pre-input <> 'Batting'.
+            IF ( ls_final_bo_pre-individual_score + ls_final_bowl-individual_score ) > ls_final_bowl-target.
+              MESSAGE | { ls_final_bowl-uname } has won | TYPE 'I'.
+              LEAVE TO SCREEN 0.
+            ENDIF.
+          ENDIF.
+        ENDIF.
+      ELSE.
+        DATA(lv_lines_bo_wicket) = lines( g_it_final ).
+        DATA(ls_final_bo_wick) =  g_it_final[ lv_lines_bo_wicket ].
+        ls_final_bo_wick-wickets_left = ls_final_bo_wick-wickets_left - 1.
+        IF ls_final_bo_wick-wickets_left = 0 AND ls_final_bo_wick-inning = 1.
+          DATA(lv_target) = 0.
+          LOOP AT g_it_final INTO ls_final_bo_wick.     " in 7.4 +, you can use select sum ( ) from itab
+            lv_target = lv_target + ls_final_bo_wick-individual_score.
+            ls_final_bo_wick-target = lv_target.
+          ENDLOOP.
+          MODIFY g_it_final FROM ls_final_bo_wick INDEX lv_lines_bo_wicket.
+          CLEAR: ls_final_bo_wick-action,
+                 ls_final_bo_wick-individual_score,
+                 ls_final_bo_wick-inning,
+                 ls_final_bo_wick-wickets_left,
+                 ls_final_bo_wick-input.
+          ls_final_bo_wick-action = 'Batting'.
+          ls_final_bo_wick-inning = 2.
+          ls_final_bo_wick-wickets_left = p_wick.
+          APPEND ls_final_bo_wick TO g_it_final.
+          me->bot_bowls_user_bats( ).
+        ELSEIF ls_final_bo_wick-wickets_left = 0 AND ls_final_bo_wick-inning <> 1.
+          ASSERT ls_final_bo_wick-target IS NOT INITIAL.
+          DATA(lv_target_match) = 0.
+          LOOP AT g_it_final INTO ls_final_bo_wick.     " in 7.4 +, you can use select sum ( ) from itab
+            lv_target_match = lv_target_match + ls_final_bo_wick-individual_score.
+            IF lv_target_match <= ls_final_bo_wick-target.
+              MESSAGE | { ls_final_bo_wick-uname } has lost | TYPE 'I'.
+              LEAVE TO SCREEN 0.
+            ENDIF.
+          ENDLOOP.
+        ELSE.
+          CLEAR: ls_final_bo_wick-individual_score, lv_bat_bot.
+          APPEND ls_final_bo_wick TO g_it_final.
+        ENDIF.
       ENDIF.
     ENDIF.
-    IF e_bot_choice IS INITIAL.
-      me->get_placeholder(
-        EXPORTING
-          i_choice      = e_user_choice
-        IMPORTING
-          e_text_choice = e_text_action
-      ).
-    ELSE.
-      me->get_placeholder(
-        EXPORTING
-          i_choice      = e_bot_choice
-        IMPORTING
-          e_text_choice = e_text_action
-      ).
-    ENDIF.
   ENDMETHOD.
 
-  METHOD get_placeholder.
-    CASE i_choice.
-      WHEN '1'.
-        e_text_choice = 'Batting'.
-      WHEN '2'.
-        e_text_choice = 'Bowling'.
-      WHEN OTHERS.
-    ENDCASE.
+  METHOD bot_bowls_user_bats.
+
   ENDMETHOD.
 ENDCLASS.
+
+*&---------------------------------------------------------------------*
+*&      Module  STATUS_0500  OUTPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE status_0500 OUTPUT.
+  SET PF-STATUS 'Z_CRICKET'.
+  SET TITLEBAR 'Cricket 2024 GUI'.
+  DATA(lo_stat) = NEW lcl_crick_play( ).
+  lo_stat->fill_catalog( ).
+
+  lo_stat->call_container( CHANGING c_val = go_cont ).
+
+  lo_stat->call_alv_grid(
+    EXPORTING
+      i_grid      = go_alv
+      i_parent_ob = go_cont
+    CHANGING
+      c_fieldcat  = g_it_catalog
+      ct_tab      = g_it_final
+  ).
+ENDMODULE.
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_0500  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE user_command_0500 INPUT.
+  CASE sy-ucomm.
+    WHEN '&BACK'.
+      LEAVE TO SCREEN 0.
+    WHEN '&CANCEL'.
+      LEAVE TO SCREEN 0.
+    WHEN '&SAVE'.
+      IF ( g_user_ch IS NOT INITIAL AND g_act = 'Batting' ) OR
+         ( g_bot_ch IS NOT INITIAL AND g_act = 'Bowling' ).
+        lo_stat->bot_bowls_user_bats( ).
+      ELSEIF ( g_user_ch IS NOT INITIAL AND g_act = 'Bowling' ) OR
+        ( g_bot_ch IS NOT INITIAL AND g_act = 'Batting' ).
+        lo_stat->user_bowls_bot_bats( ).
+      ENDIF.
+  ENDCASE.
+ENDMODULE.
