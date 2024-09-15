@@ -21,9 +21,15 @@ CLASS lcl_ui DEFINITION.
                        i_result      TYPE boole_d
                      EXPORTING
                        e_user_choice TYPE char1
-                       e_bot_choice  TYPE char1.
+                       e_bot_choice  TYPE char1
+                       e_text_action TYPE string.
   PROTECTED SECTION.
   PRIVATE SECTION.
+    DATA dec_make TYPE char2.
+    METHODS: get_placeholder IMPORTING
+                               i_choice      TYPE char1
+                             EXPORTING
+                               e_text_choice TYPE string.
 ENDCLASS.
 
 CLASS lcl_ui IMPLEMENTATION.
@@ -101,6 +107,30 @@ CLASS lcl_ui IMPLEMENTATION.
 
       ENDIF.
     ENDIF.
+    IF e_bot_choice IS INITIAL.
+      me->get_placeholder(
+        EXPORTING
+          i_choice      = e_user_choice
+        IMPORTING
+          e_text_choice = e_text_action
+      ).
+    ELSE.
+      me->get_placeholder(
+        EXPORTING
+          i_choice      = e_bot_choice
+        IMPORTING
+          e_text_choice = e_text_action
+      ).
+    ENDIF.
   ENDMETHOD.
 
+  METHOD get_placeholder.
+    CASE i_choice.
+      WHEN '1'.
+        e_text_choice = 'Batting'.
+      WHEN '2'.
+        e_text_choice = 'Bowling'.
+      WHEN OTHERS.
+    ENDCASE.
+  ENDMETHOD.
 ENDCLASS.
