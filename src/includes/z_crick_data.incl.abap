@@ -4,7 +4,8 @@
 
 TYPES: BEGIN OF ty_final,
          uname            TYPE usr02-bname,
-         action           TYPE char2,
+         input            TYPE i,
+         action           TYPE string,
          inning           TYPE i,
          individual_score TYPE i,
          running_total    TYPE i,
@@ -18,4 +19,5 @@ DATA: g_result     TYPE boole_d,
       go_alv       TYPE  REF TO cl_gui_alv_grid,
       go_cont      TYPE REF TO cl_gui_custom_container,
       g_it_catalog TYPE lvc_t_fcat,
-      g_it_final   TYPE STANDARD TABLE OF ty_final.
+      g_it_final   TYPE STANDARD TABLE OF ty_final,
+      g_act        TYPE string.
