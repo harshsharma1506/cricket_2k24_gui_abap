@@ -109,11 +109,6 @@ CLASS lcl_crick_play IMPLEMENTATION.
       DATA(ls_final_bowl) = g_it_final[ lv_lines_bowl ].
       IF ls_final_bowl-input <> lv_bat_bot.                     " wicket / out scenario
         ls_final_bowl-individual_score = ls_final_bowl-individual_score + lv_bat_bot.
-*        IF ls_final_bowl-wickets_left = 10.
-*          ls_final_bowl-running_total = ls_final_bowl-individual_score.
-*        ELSE.
-*          ls_final_bowl-running_total = ls_final_bowl-running_total + ls_final_bowl-individual_score.
-*        ENDIF.
         MODIFY g_it_final FROM ls_final_bowl INDEX lv_lines_bowl.
         IF sy-subrc <> 0.
           MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
@@ -123,13 +118,32 @@ CLASS lcl_crick_play IMPLEMENTATION.
         DATA(lv_lines_bo_wicket) = lines( g_it_final ).
         DATA(ls_final_bo_wick) =  g_it_final[ lv_lines_bo_wicket ].
         ls_final_bo_wick-wickets_left = ls_final_bo_wick-wickets_left - 1.
-        IF ls_final_bo_wick-wickets_left = 0.
+        IF ls_final_bo_wick-wickets_left = 0 AND ls_final_bo_wick-inning = 1.
+          DATA(lv_target) = 0.
           LOOP AT g_it_final INTO ls_final_bo_wick.     " in 7.4 +, you can use select sum ( ) from itab
-            DATA(lv_target) = 0.
             lv_target = lv_target + ls_final_bo_wick-individual_score.
             ls_final_bo_wick-target = lv_target.
           ENDLOOP.
           MODIFY g_it_final FROM ls_final_bo_wick INDEX lv_lines_bo_wicket.
+          CLEAR: ls_final_bo_wick-action,
+                 ls_final_bo_wick-individual_score,
+                 ls_final_bo_wick-inning,
+                 ls_final_bo_wick-wickets_left,
+                 ls_final_bo_wick-input.
+          ls_final_bo_wick-action = 'Batting'.
+          ls_final_bo_wick-inning = 2.
+          ls_final_bo_wick-wickets_left = p_wick.
+          APPEND ls_final_bo_wick TO g_it_final.
+        ELSEIF ls_final_bo_wick-wickets_left = 0 AND ls_final_bo_wick-inning <> 1.
+          ASSERT ls_final_bo_wick-target IS NOT INITIAL.
+          DATA(lv_target_match) = 0.
+          LOOP AT g_it_final INTO ls_final_bo_wick.     " in 7.4 +, you can use select sum ( ) from itab
+            lv_target_match = lv_target_match + ls_final_bo_wick-individual_score.
+            IF lv_target_match <= ls_final_bo_wick-target.
+              MESSAGE | { ls_final_bo_wick-uname } has lost | TYPE 'I'.
+              LEAVE TO SCREEN 0.
+            ENDIF.
+          ENDLOOP.
         ELSE.
           CLEAR: ls_final_bo_wick-individual_score, lv_bat_bot.
           APPEND ls_final_bo_wick TO g_it_final.
@@ -137,6 +151,7 @@ CLASS lcl_crick_play IMPLEMENTATION.
       ENDIF.
     ENDIF.
   ENDMETHOD.
+
   METHOD bot_bowls_user_bats.
 
   ENDMETHOD.
