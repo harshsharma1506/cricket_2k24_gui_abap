@@ -11,6 +11,8 @@ INCLUDE: z_crick_data,        "data declaration
          z_crick_screen_flow. "screen flow and other classes
 
 AT SELECTION-SCREEN.
+  FREE MEMORY ID 'MAT'.
+  FREE MEMORY ID 'VKO'.
   DATA(lo_ui) = NEW lcl_ui( ).
   lo_ui->val_range( i_range =  p_range ).   "6 or 10
   lo_ui->val_wicket( i_wck = p_wick  ).     " max 10 wickets
