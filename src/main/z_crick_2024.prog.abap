@@ -1,7 +1,7 @@
 *&---------------------------------------------------------------------*
 *& Report  Z_CRICK_2024
 *&---------------------------------------------------------------------*
-*& Author - HXS0615
+*& Author - Harsh Sharma
 *&---------------------------------------------------------------------*
 REPORT z_crick_2024.
 
@@ -27,14 +27,13 @@ AT SELECTION-SCREEN.
     IMPORTING
       e_user_choice = g_user_ch
       e_bot_choice  = g_bot_ch
+      e_text_action = g_act
   ).
-
-
 
 START-OF-SELECTION.
   IF g_user_ch IS NOT INITIAL.
-    g_it_final = VALUE #( ( UNAME = p_name action = g_user_ch inning = 1 ) ).
+    g_it_final = VALUE #( ( UNAME = p_name action = g_act inning = 1 wickets_left = p_wick ) ).
   ELSE.
-    g_it_final = VALUE #( ( UNAME = 'Bot' action = g_bot_ch inning = 1 ) ).
+    g_it_final = VALUE #( ( UNAME = 'Bot' action = g_act inning = 1 wickets_left = p_wick ) ).
   ENDIF.
   CALL SCREEN 500.
