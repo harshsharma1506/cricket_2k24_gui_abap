@@ -88,6 +88,7 @@ CLASS lcl_crick_play IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD user_bowls_bot_bats.
+    DATA lv_trg_chk TYPE i.
     IF lo_grid IS BOUND.
       lo_ui_stat = NEW lcl_ui( ).
       lo_ui_stat->random_generator(
@@ -141,7 +142,20 @@ CLASS lcl_crick_play IMPLEMENTATION.
             CATCH cx_sy_itab_line_not_found.
           ENDTRY.
           IF ls_final_bo_pre-action <> 'Batting'.
-            IF ( ls_final_bo_pre-individual_score + ls_final_bowl-individual_score ) > ls_final_bowl-target.
+            LOOP AT g_it_final INTO DATA(ls_final_chk) WHERE action = 'Batting'.
+              IF ls_final_chk-uname = 'Bot'.
+                lv_trg_chk = lv_trg_chk +  ls_final_chk-individual_score.
+              ENDIF.
+            ENDLOOP.
+            IF lv_trg_chk > ls_final_chk-target.
+              MESSAGE | { ls_final_bowl-uname } has won | TYPE 'I'.
+              LEAVE TO SCREEN 0.
+            ENDIF.
+          ELSE.
+            LOOP AT g_it_final INTO ls_final_chk WHERE action = 'Bowling'.
+             lv_trg_chk = lv_trg_chk + ls_final_chk-individual_score.
+            ENDLOOP.
+            IF lv_trg_chk > ls_final_chk-target.
               MESSAGE | { ls_final_bowl-uname } has won | TYPE 'I'.
               LEAVE TO SCREEN 0.
             ENDIF.
@@ -188,7 +202,11 @@ CLASS lcl_crick_play IMPLEMENTATION.
           IF lv_target_match <= ls_final_bo_wick-target.
             MESSAGE | { ls_final_bo_wick-uname } has lost | TYPE 'I'.
             LEAVE TO SCREEN 0.
+          ELSEIF lv_target_match > ls_final_bo_wick-target.
+            MESSAGE | { ls_final_bo_wick-uname } has won | TYPE 'I'.
+            LEAVE TO SCREEN 0.
           ENDIF.
+
         ELSE.
           CLEAR: ls_final_bo_wick-individual_score, lv_bat_bot.
           APPEND ls_final_bo_wick TO g_it_final.
@@ -198,6 +216,7 @@ CLASS lcl_crick_play IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD bot_bowls_user_bats.
+    DATA lv_trg_chk TYPE i.
     IF lo_grid IS BOUND.
       lo_ui_stat = NEW lcl_ui( ).
       lo_ui_stat->random_generator(
@@ -251,8 +270,19 @@ CLASS lcl_crick_play IMPLEMENTATION.
             CATCH cx_sy_itab_line_not_found.
           ENDTRY.
           IF ls_final_ba_pre-action <> 'Batting'.
-            IF ( ls_final_ba_pre-individual_score + ls_final_bat-individual_score ) > ls_final_bat-target.
+            LOOP AT g_it_final INTO DATA(ls_final_chk) WHERE action = 'Batting'.
+              lv_trg_chk = lv_trg_chk + ls_final_chk-individual_score.   " in 7.5 + you can use '+= operator
+            ENDLOOP.
+            IF lv_trg_chk > ls_final_chk-target.
               MESSAGE | { ls_final_bat-uname } has won | TYPE 'I'.
+              LEAVE TO SCREEN 0.
+            ENDIF.
+          ELSE.
+            LOOP AT g_it_final INTO ls_final_chk WHERE action = 'Bowling'.
+               lv_trg_chk = lv_trg_chk + ls_final_chk-individual_score.
+            ENDLOOP.
+            IF lv_trg_chk > ls_final_chk-target.
+              MESSAGE | { ls_final_bat-uname } has lost | TYPE 'I'.
               LEAVE TO SCREEN 0.
             ENDIF.
           ENDIF.
@@ -297,6 +327,9 @@ CLASS lcl_crick_play IMPLEMENTATION.
           ENDLOOP.
           IF lv_target_match1 <= ls_final_ba_wick-target.
             MESSAGE | { ls_final_ba_wick-uname } has lost | TYPE 'I'.
+            LEAVE TO SCREEN 0.
+          ELSEIF lv_target_match1 > ls_final_ba_wick-target.
+            MESSAGE | { ls_final_ba_wick-uname } has won | TYPE 'I'.
             LEAVE TO SCREEN 0.
           ENDIF.
         ELSE.
