@@ -60,13 +60,13 @@ CLASS lcl_crick_play IMPLEMENTATION.
       MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
                  WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
     ENDIF.
-    lt_toolbar_excluding = value #( ( i_grid->MC_FC_LOC_UNDO )
-                                     ( i_grid->MC_FC_LOC_APPEND_ROW )
-                                     ( i_grid->MC_FC_LOC_APPEND_ROW )
-                                     ( i_grid->MC_FC_LOC_COPY_ROW )
-                                     ( i_grid->MC_FC_LOC_DELETE_ROW )
-                                     ( i_grid->MC_FC_LOC_INSERT_ROW )
-                                     ( i_grid->MC_FC_LOC_CUT ) ).
+    lt_toolbar_excluding = VALUE #( ( i_grid->mc_fc_loc_undo )
+                                     ( i_grid->mc_fc_loc_append_row )
+                                     ( i_grid->mc_fc_loc_append_row )
+                                     ( i_grid->mc_fc_loc_copy_row )
+                                     ( i_grid->mc_fc_loc_delete_row )
+                                     ( i_grid->mc_fc_loc_insert_row )
+                                     ( i_grid->mc_fc_loc_cut ) ).
     i_grid->set_table_for_first_display(
       EXPORTING
         i_save                        = 'X'    " Save Layout
@@ -163,12 +163,12 @@ CLASS lcl_crick_play IMPLEMENTATION.
           ELSE.
             ls_final_bo_wick-action = 'Batting'.
           ENDIF.
-          CASE ls_final_bo_wick-uname.
-            WHEN p_name.
-              ls_final_bo_wick-uname = 'Bot'.
-            WHEN 'Bot'.
-              ls_final_bo_wick-uname = p_name.
-          ENDCASE.
+*          CASE ls_final_bo_wick-uname.
+*            WHEN p_name.
+*              ls_final_bo_wick-uname = 'Bot'.
+*            WHEN 'Bot'.
+*              ls_final_bo_wick-uname = p_name.
+*          ENDCASE.
           CLEAR:  ls_final_bo_wick-individual_score,
                  ls_final_bo_wick-inning,
                  ls_final_bo_wick-wickets_left,
@@ -184,11 +184,11 @@ CLASS lcl_crick_play IMPLEMENTATION.
           DATA(lv_target_match) = 0.
           LOOP AT g_it_final INTO ls_final_bo_wick.     " in 7.4 +, you can use select sum ( ) from itab
             lv_target_match = lv_target_match + ls_final_bo_wick-individual_score.
-            IF lv_target_match <= ls_final_bo_wick-target.
-              MESSAGE | { ls_final_bo_wick-uname } has lost | TYPE 'I'.
-              LEAVE TO SCREEN 0.
-            ENDIF.
           ENDLOOP.
+          IF lv_target_match <= ls_final_bo_wick-target.
+            MESSAGE | { ls_final_bo_wick-uname } has lost | TYPE 'I'.
+            LEAVE TO SCREEN 0.
+          ENDIF.
         ELSE.
           CLEAR: ls_final_bo_wick-individual_score, lv_bat_bot.
           APPEND ls_final_bo_wick TO g_it_final.
@@ -273,17 +273,17 @@ CLASS lcl_crick_play IMPLEMENTATION.
           ELSE.
             ls_final_ba_wick-action = 'Batting'.
           ENDIF.
-          CASE ls_final_ba_wick-uname.
-            WHEN p_name.
-              ls_final_ba_wick-uname = 'Bot'.
-            WHEN 'Bot'.
-              ls_final_ba_wick-uname = p_name.
-          ENDCASE.
+*          CASE ls_final_ba_wick-uname.
+*            WHEN p_name.
+*              ls_final_ba_wick-uname = 'Bot'.
+*            WHEN 'Bot'.
+*              ls_final_ba_wick-uname = p_name.
+*          ENDCASE.
           CLEAR: ls_final_ba_wick-individual_score,
                  ls_final_ba_wick-inning,
                  ls_final_ba_wick-wickets_left,
                  ls_final_ba_wick-input.
-          ls_final_ba_wick-action = 'Bowling'.
+*          ls_final_ba_wick-action = 'Bowling'.
           ls_final_ba_wick-inning = 2.
           ls_final_ba_wick-wickets_left = p_wick.
           APPEND ls_final_ba_wick TO g_it_final.
@@ -294,11 +294,11 @@ CLASS lcl_crick_play IMPLEMENTATION.
           DATA(lv_target_match1) = 0.
           LOOP AT g_it_final INTO ls_final_ba_wick.     " in 7.4 +, you can use select sum ( ) from itab
             lv_target_match1 = lv_target_match1 + ls_final_ba_wick-individual_score.
-            IF lv_target_match1 <= ls_final_ba_wick-target.
-              MESSAGE | { ls_final_ba_wick-uname } has lost | TYPE 'I'.
-              LEAVE TO SCREEN 0.
-            ENDIF.
           ENDLOOP.
+          IF lv_target_match1 <= ls_final_ba_wick-target.
+            MESSAGE | { ls_final_ba_wick-uname } has lost | TYPE 'I'.
+            LEAVE TO SCREEN 0.
+          ENDIF.
         ELSE.
           CLEAR: ls_final_ba_wick-individual_score, lv_bowl_bot.
           APPEND ls_final_ba_wick TO g_it_final.
