@@ -3,6 +3,8 @@
 This is an ABAP version of an offline game that kids play in India, it's often called 'Hand Cricket', it revolves around the odd 
 and even numbers for decision making. 
 
+For more info, go through [! https://www.instructables.com/How-to-Play-Hand-Cricket/]
+
 ```
 Rules of the game
 
@@ -14,6 +16,21 @@ Rules of the game
 5. When batting the score gets calculated on the basis of the sum of your inputs
 6. If the number that the batting person and balling person choose is the same, the wicket is counted.
 ```
+
+
+## Controls 
+
+```
+In the ALV grid, after the input
+Refresh
+Ctrl + S
+Refresh
+```
+
+## ABAP version 
+7.4 
+
+## Suggestions to optimize the current code 
 
 
 ## Selection Screen 
