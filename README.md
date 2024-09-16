@@ -27,8 +27,8 @@ Ctrl + S
 Refresh
 ```
 
-## ABAP version 
-7.4 
+## ABAP version & case used 
+7.4 & camel_case 😉
 
 ## Suggestions to optimize the current code 
 
@@ -47,7 +47,12 @@ SELECT SINGLE SUM( individual_score ) FROM @g_it_final as itab
 ```
 
 For , summing as well, new sum operator can be use for incremental sum.
-
+```abap
+"instead of
+DATA(lv_trg) = lv_trg + ls_final-individual_score.
+"you can write as below
+DATA(lv_trg) += ls_final-individual_score.
+```
 ## Selection Screen 
 
 ![image](https://github.com/user-attachments/assets/43ac711c-3169-46ec-9d19-be42f40420f5)
