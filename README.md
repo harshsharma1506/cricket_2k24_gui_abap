@@ -3,7 +3,7 @@
 This is an ABAP version of an offline game that kids play in India, it's often called 'Hand Cricket', it revolves around the odd 
 and even numbers for decision making. 
 
-For more info, go through [ this ](https://www.instructables.com/How-to-Play-Hand-Cricket/)
+For more info, go through [ this article ](https://www.instructables.com/How-to-Play-Hand-Cricket/)
 
 ```
 Rules of the game
@@ -32,6 +32,21 @@ Refresh
 
 ## Suggestions to optimize the current code 
 
+So, at few places I wasn't able to use the ABAP magic which comes in 7.5. 
+Hence, there is one loop in the code to calculate the target match that could be done via a select from itab as well 
+
+```abap
+"instead of below
+LOOP AT g_it_final INTO ls_final_ba_wick.     " in 7.4 +, you can use select sum ( ) from itab
+            lv_target_match1 = lv_target_match1 + ls_final_ba_wick-individual_score
+ENDLOOP.
+
+"we could have it via
+SELECT SINGLE SUM( individual_score ) FROM @g_it_final as itab
+      WHERE action = 'Batting'.
+```
+
+For , summing as well, new sum operator can be use for incremental sum.
 
 ## Selection Screen 
 
