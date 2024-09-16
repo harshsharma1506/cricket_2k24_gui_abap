@@ -8,7 +8,7 @@ For more info, go through [ this article ](https://www.instructables.com/How-to-
 ```
 Rules of the game
 
-1. User chooses their toss ,i.e. ODD or EVEN number
+1. Users choose their toss ,i.e. ODD or EVEN number
 2. Then both the user and the bot take out a random number
 3. The sum of both the number is done and then, if the sum is odd the one who took odd wins and
    gets to choose whether to bat or bowl, or vice versa.
@@ -55,18 +55,22 @@ DATA(lv_trg) += ls_final-individual_score.
 ```
 ## Selection Screen 
 
-![image](https://github.com/user-attachments/assets/43ac711c-3169-46ec-9d19-be42f40420f5)
+![image](https://github.com/user-attachments/assets/e573130d-deb3-4c96-82bf-64406265f006)
+
 
 ## Toss Outcome 
 
 Either you lose 😞
+
 ![image](https://github.com/user-attachments/assets/53c52ca1-6a2f-4a3a-8363-107d9c78965e)
 
 Or you win 😉
+
 ![image](https://github.com/user-attachments/assets/964cae4d-8b25-44a6-b2fa-1ba1d72220bd)
 
 ## Result  
 
-![image](https://github.com/user-attachments/assets/7a196aa8-f6d7-4036-8ccb-23003b6cceeb)
+![image](https://github.com/user-attachments/assets/b84e41a0-e75a-49ef-8447-2fc216c6aa83)
+
 
 
