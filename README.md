@@ -3,7 +3,7 @@
 This is an ABAP version of an offline game that kids play in India, it's often called 'Hand Cricket', it revolves around the odd 
 and even numbers for decision making. 
 
-For more info, go through [! https://www.instructables.com/How-to-Play-Hand-Cricket/]
+For more info, go through [ this ](https://www.instructables.com/How-to-Play-Hand-Cricket/)
 
 ```
 Rules of the game
