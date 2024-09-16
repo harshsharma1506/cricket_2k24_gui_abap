@@ -73,4 +73,8 @@ Or you win 😉
 ![image](https://github.com/user-attachments/assets/b84e41a0-e75a-49ef-8447-2fc216c6aa83)
 
 
+## Note 
+Feel free to make a pull request to enhance the game or raise an issue, I will review and revert back
+If you like my work, let's connect 🤝
+
 
